@@ -21,13 +21,13 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd server
+          cd Server
           npm install
 
       - name: Run Test Cases
         id: runtests
         run: |
-          cd server
+          cd Server
           echo "Running tests..."
           npm test > test-report.txt || echo "TEST_FAILED=true" >> $GITHUB_ENV
 
