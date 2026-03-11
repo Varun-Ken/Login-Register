@@ -11,42 +11,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout repo
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # Debug - show folder structure
+      - name: Show Project Structure
+        run: ls -R
+
+      # Install dependencies (root project)
       - name: Install Dependencies
-        working-directory: server
         run: npm install
 
-      - name: Generate Test Report
+      # Run tests
+      - name: Run Tests
+        id: runtest
         run: |
-          echo "Running validation checks..." > test-report.txt
+          npm test
+          
+      # Generate report
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "GitHub CI Execution Report" > test-report.txt
           echo "Repository: ${{ github.repository }}" >> test-report.txt
           echo "Branch: ${{ github.ref_name }}" >> test-report.txt
           echo "Triggered By: ${{ github.actor }}" >> test-report.txt
-          echo "Status: SUCCESS" >> test-report.txt
+          echo "Run ID: ${{ github.run_id }}" >> test-report.txt
+          echo "Result: ${{ job.status }}" >> test-report.txt
 
+      # Upload report
       - name: Upload Test Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: test-report.txt
 
+      # Send email (PASS or FAIL)
       - name: Send Email Report
+        if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: GitHub CI Report - ${{ github.repository }}
+
+          subject: CI Report - ${{ job.status }}
+
           to: aaaare653tp6pq45oyh6pxpykm@spantech.slack.com
+
           from: GitHub CI
+
           body: |
             GitHub CI Execution Report
 
@@ -54,4 +77,7 @@ jobs:
             Branch: ${{ github.ref_name }}
             Triggered By: ${{ github.actor }}
 
-            CI completed successfully.
+            Test Result: ${{ job.status }}
+
+            View Run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
