@@ -17,5 +17,5 @@ jobs:
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: GitHub Test Email
           body: GitHub workflow ran successfully
-          to: deepakayitha@gmail.com
+          to: aaaare653tp6pq45oyh6pxpykm@spantech.slack.com
           from: GitHub Actions
