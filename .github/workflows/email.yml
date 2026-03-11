@@ -20,7 +20,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        working-directory: ./server
+        working-directory: server
         run: npm install
 
       - name: Generate Test Report
