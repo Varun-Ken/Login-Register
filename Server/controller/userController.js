@@ -190,7 +190,7 @@ const checkAuth = async (req, res) => {
     });
   }
 };
-const checkTestController = async (req, res) => {
+const testController = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
