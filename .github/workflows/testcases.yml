@@ -92,3 +92,16 @@ jobs:
 
             Run Link:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # Close PR if tests fail
+      - name: Close Pull Request if Tests Fail
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              state: "closed"
+            })
