@@ -1,21 +1,60 @@
-name: Email Notification
+name: CI Test and Email Report
 
 on:
+  pull_request:
+    branches:
+      - V_Sprint_Master
   workflow_dispatch:
 
 jobs:
-  send-email:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send Email
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Test Cases
+        id: runtests
+        run: |
+          echo "Running tests..."
+          npm test > test-report.txt || echo "TEST_FAILED=true" >> $GITHUB_ENV
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test-report.txt
+
+      - name: Send Email Report
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: GitHub Test Email
-          body: GitHub workflow ran successfully
+          subject: GitHub Test Report - ${{ github.repository }}
           to: aaaare653tp6pq45oyh6pxpykm@spantech.slack.com
-          from: GitHub Actions
+          from: GitHub CI
+          body: |
+            GitHub Test Execution Report
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Triggered By: ${{ github.actor }}
+
+            Check attached test report.
+
+      - name: Fail Pipeline if Tests Failed
+        if: env.TEST_FAILED == 'true'
+        run: |
+          echo "Tests failed. Blocking merge."
+          exit 1
